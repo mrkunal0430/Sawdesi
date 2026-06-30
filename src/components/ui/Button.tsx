@@ -5,23 +5,23 @@ import { cn } from "@/lib/utils";
 import { forwardRef, cloneElement, isValidElement } from "react";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 font-sans font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer select-none",
+  "inline-flex items-center justify-center gap-2 font-sans font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer select-none",
   {
     variants: {
       variant: {
         primary:
-          "bg-saffron text-white hover:bg-saffron-dark active:scale-[0.98] shadow-sm hover:shadow-md",
+          "bg-forest text-cream hover:bg-forest-dark active:scale-[0.98] shadow-sm hover:shadow-md",
         secondary:
-          "bg-forest text-white hover:bg-forest-dark active:scale-[0.98] shadow-sm hover:shadow-md",
+          "bg-saffron text-white hover:bg-saffron-dark active:scale-[0.98] shadow-sm hover:shadow-md",
         ghost:
           "bg-transparent text-charcoal hover:bg-cream-dark border border-border active:scale-[0.98]",
         outline:
+          "bg-transparent border-2 border-forest text-forest hover:bg-forest hover:text-cream active:scale-[0.98]",
+        "outline-saffron":
           "bg-transparent border-2 border-saffron text-saffron hover:bg-saffron hover:text-white active:scale-[0.98]",
-        "outline-forest":
-          "bg-transparent border-2 border-forest text-forest hover:bg-forest hover:text-white active:scale-[0.98]",
         destructive:
           "bg-red-600 text-white hover:bg-red-700 active:scale-[0.98]",
-        link: "text-saffron underline-offset-4 hover:underline p-0 h-auto",
+        link: "text-forest underline-offset-4 hover:underline p-0 h-auto",
       },
       size: {
         sm: "h-8 px-4 text-sm rounded-lg",

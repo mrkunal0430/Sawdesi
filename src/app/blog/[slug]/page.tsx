@@ -1,49 +1,86 @@
-import { Metadata } from "next";
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock, ArrowLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
-import { MOCK_BLOG_POSTS } from "@/constants";
 import { formatDate } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { mapBlogPost } from "@/lib/mapBlogPost";
+import type { BlogPost } from "@/types";
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const post = MOCK_BLOG_POSTS.find((p) => p.slug === params.slug);
-  return { title: post?.title ?? "Blog Post" };
-}
-
-const sampleBody = `
-Ayurveda, India's ancient system of medicine, has known for over 5,000 years what modern science is now confirming:
-the food we eat is medicine. At Sawdesi, every product we create is rooted in this understanding.
-
-## The Science Behind the Tradition
-
-When we look at ingredients like Ashwagandha, Amla, or Lakadong Turmeric, we find extraordinary chemistry.
-Ashwagandha contains withanolides — compounds that modulate the HPA axis, directly reducing cortisol levels.
-Amla has one of the highest natural concentrations of Vitamin C, far exceeding oranges on a gram-for-gram basis.
-
-## How to Incorporate These Into Your Daily Life
-
-The best way to benefit from Ayurvedic superfoods is consistent, daily use. Small doses over time create
-cumulative effects that no pharmaceutical can replicate. Start with one addition to your morning routine —
-a teaspoon of moringa in your smoothie, a half-teaspoon of ashwagandha in warm milk before bed.
-
-## What to Look For When Buying
-
-Not all products are created equal. Look for:
-- Full ingredient transparency
-- Third-party lab certifications
-- Clear sourcing information
-- No artificial additives or fillers
-
-At Sawdesi, all our lab reports are available on request. We believe you have the right to know exactly what you're consuming.
-`;
+const gradients = ["product-gradient-2", "product-gradient-3", "product-gradient-1"];
+const emojis = ["🌱", "☕", "🍃"];
 
 export default function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post = MOCK_BLOG_POSTS.find((p) => p.slug === params.slug);
-  if (!post) notFound();
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [related, setRelated] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const related = MOCK_BLOG_POSTS.filter((p) => p.id !== post.id).slice(0, 3);
-  const gradients = ["product-gradient-2", "product-gradient-3", "product-gradient-1"];
+  const fetchPost = useCallback(async () => {
+    const supabase = createClient();
+
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .eq("slug", params.slug)
+      .eq("published", true)
+      .single();
+
+    if (error || !data) {
+      setPost(null);
+      setLoading(false);
+      return;
+    }
+
+    const mapped = mapBlogPost(data);
+    setPost(mapped);
+
+    // Update page title
+    document.title = `${mapped.title} — Sawdesi`;
+
+    // Fetch related posts
+    const { data: relatedData } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .eq("published", true)
+      .neq("id", mapped.id)
+      .order("published_at", { ascending: false })
+      .limit(3);
+
+    setRelated((relatedData ?? []).map(mapBlogPost));
+    setLoading(false);
+  }, [params.slug]);
+
+  useEffect(() => { fetchPost(); }, [fetchPost]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-cream">
+        <div className="bg-white border-b border-border">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2 text-sm text-muted">
+            <Link href="/" className="hover:text-charcoal">Home</Link>
+            <ChevronRight size={14} />
+            <Link href="/blog" className="hover:text-charcoal">Blog</Link>
+            <ChevronRight size={14} />
+            <span className="text-charcoal font-medium">Loading…</span>
+          </div>
+        </div>
+        <div className={`h-72 ${gradients[0]} flex items-center justify-center`}>
+          <span className="text-9xl select-none">🌿</span>
+        </div>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 animate-pulse space-y-4">
+          <div className="h-6 bg-cream-dark rounded w-1/4" />
+          <div className="h-10 bg-cream-dark rounded w-3/4" />
+          <div className="h-5 bg-cream-dark rounded w-full" />
+          <div className="h-5 bg-cream-dark rounded w-2/3" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!post) notFound();
 
   return (
     <div className="min-h-screen bg-cream">
@@ -59,8 +96,13 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
       </div>
 
       {/* Hero */}
-      <div className={`h-72 ${gradients[0]} flex items-center justify-center text-9xl select-none`}>
-        🌿
+      <div className={`h-72 ${post.coverImage ? "bg-cream-dark" : gradients[0]} flex items-center justify-center overflow-hidden`}>
+        {post.coverImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={post.coverImage} alt={post.title} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-9xl select-none">🌿</span>
+        )}
       </div>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
@@ -83,7 +125,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
           <div>
             <p className="text-sm font-semibold text-charcoal">{post.author}</p>
             <div className="flex items-center gap-2 text-xs text-muted">
-              <span>{formatDate(post.publishedAt)}</span>
+              <span>{post.publishedAt ? formatDate(post.publishedAt) : ""}</span>
               <span>·</span>
               <Clock size={11} />
               <span>{post.readTime} min read</span>
@@ -93,50 +135,63 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
 
         {/* Article body */}
         <div className="prose prose-sm max-w-none text-charcoal space-y-4">
-          {sampleBody.trim().split("\n\n").map((para, i) => {
-            if (para.startsWith("## ")) {
-              return <h2 key={i} className="text-xl font-bold text-charcoal mt-8 mb-3" style={{ fontFamily: "var(--font-playfair)" }}>{para.replace("## ", "")}</h2>;
-            }
-            if (para.startsWith("- ")) {
-              return (
-                <ul key={i} className="list-disc list-inside space-y-1">
-                  {para.split("\n").filter(Boolean).map((item, j) => (
-                    <li key={j} className="text-muted text-sm">{item.replace("- ", "")}</li>
-                  ))}
-                </ul>
-              );
-            }
-            return <p key={i} className="text-muted leading-relaxed">{para}</p>;
-          })}
+          {post.body ? (
+            post.body.trim().split("\n\n").map((para, i) => {
+              if (para.startsWith("## ")) {
+                return <h2 key={i} className="text-xl font-bold text-charcoal mt-8 mb-3" style={{ fontFamily: "var(--font-playfair)" }}>{para.replace("## ", "")}</h2>;
+              }
+              if (para.startsWith("- ")) {
+                return (
+                  <ul key={i} className="list-disc list-inside space-y-1">
+                    {para.split("\n").filter(Boolean).map((item, j) => (
+                      <li key={j} className="text-muted text-sm">{item.replace("- ", "")}</li>
+                    ))}
+                  </ul>
+                );
+              }
+              return <p key={i} className="text-muted leading-relaxed">{para}</p>;
+            })
+          ) : (
+            <p className="text-muted italic">Content coming soon.</p>
+          )}
         </div>
 
         {/* Tags */}
-        <div className="flex flex-wrap gap-2 mt-10 pt-6 border-t border-border">
-          {post.tags.map((tag) => (
-            <Badge key={tag} variant="default" size="sm">#{tag}</Badge>
-          ))}
-        </div>
-
-        {/* Related posts */}
-        <div className="mt-12">
-          <h3 className="text-xl font-bold text-charcoal mb-5" style={{ fontFamily: "var(--font-playfair)" }}>
-            More from the Journal
-          </h3>
-          <div className="grid sm:grid-cols-3 gap-4">
-            {related.map((p, i) => (
-              <Link key={p.id} href={`/blog/${p.slug}`} className="group bg-white rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-all">
-                <div className={`h-32 ${gradients[i % gradients.length]} flex items-center justify-center text-4xl`}>
-                  {["🌱", "☕", "🍃"][i]}
-                </div>
-                <div className="p-4">
-                  <h4 className="text-sm font-bold text-charcoal group-hover:text-saffron-dark transition-colors line-clamp-2" style={{ fontFamily: "var(--font-playfair)" }}>
-                    {p.title}
-                  </h4>
-                </div>
-              </Link>
+        {post.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-10 pt-6 border-t border-border">
+            {post.tags.map((tag) => (
+              <Badge key={tag} variant="default" size="sm">#{tag}</Badge>
             ))}
           </div>
-        </div>
+        )}
+
+        {/* Related posts */}
+        {related.length > 0 && (
+          <div className="mt-12">
+            <h3 className="text-xl font-bold text-charcoal mb-5" style={{ fontFamily: "var(--font-playfair)" }}>
+              More from the Journal
+            </h3>
+            <div className="grid sm:grid-cols-3 gap-4">
+              {related.map((p, i) => (
+                <Link key={p.id} href={`/blog/${p.slug}`} className="group bg-white rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-all">
+                  <div className={`h-32 ${p.coverImage ? "bg-cream-dark" : gradients[i % gradients.length]} flex items-center justify-center overflow-hidden`}>
+                    {p.coverImage ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.coverImage} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ) : (
+                      <span className="text-4xl">{emojis[i % emojis.length]}</span>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h4 className="text-sm font-bold text-charcoal group-hover:text-saffron-dark transition-colors line-clamp-2" style={{ fontFamily: "var(--font-playfair)" }}>
+                      {p.title}
+                    </h4>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

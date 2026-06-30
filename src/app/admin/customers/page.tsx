@@ -1,73 +1,138 @@
-import { Metadata } from "next";
-import Link from "next/link";
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { Search } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { formatPrice, formatDate } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 
-export const metadata: Metadata = { title: "Admin — Customers" };
-
-const customers = [
-  { id: "USR-001", name: "Priya Sharma", email: "priya@example.com", city: "Mumbai", orders: 8, totalSpent: 12400, joined: "2024-02-10", status: "Active" },
-  { id: "USR-002", name: "Rahul Nair", email: "rahul@example.com", city: "Bengaluru", orders: 5, totalSpent: 7800, joined: "2024-03-22", status: "Active" },
-  { id: "USR-003", name: "Ananya Bose", email: "ananya@example.com", city: "Kolkata", orders: 12, totalSpent: 18900, joined: "2023-11-15", status: "Active" },
-  { id: "USR-004", name: "Vikram Reddy", email: "vikram@example.com", city: "Hyderabad", orders: 3, totalSpent: 3200, joined: "2024-05-01", status: "Active" },
-  { id: "USR-005", name: "Meera Iyer", email: "meera@example.com", city: "Chennai", orders: 1, totalSpent: 799, joined: "2025-06-01", status: "New" },
-];
+interface CustomerRow {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  loyaltyPoints: number;
+  createdAt: string;
+  orderCount: number;
+  totalSpent: number;
+}
 
 export default function AdminCustomersPage() {
+  const [customers, setCustomers] = useState<CustomerRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  const fetchCustomers = useCallback(async () => {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, name, email, role, loyalty_points, created_at")
+      .order("created_at", { ascending: false });
+    if (error) { toast.error("Failed to load customers"); return; }
+
+    const ids = (data ?? []).map((u) => u.id);
+    let orderStats: Record<string, { count: number; total: number }> = {};
+
+    if (ids.length > 0) {
+      const { data: orders } = await supabase
+        .from("orders")
+        .select("user_id, total")
+        .in("user_id", ids);
+      (orders ?? []).forEach((o) => {
+        if (!orderStats[o.user_id]) orderStats[o.user_id] = { count: 0, total: 0 };
+        orderStats[o.user_id].count++;
+        orderStats[o.user_id].total += Number(o.total);
+      });
+    }
+
+    setCustomers(
+      (data ?? []).map((u) => ({
+        id: u.id, name: u.name || "—", email: u.email,
+        role: u.role, loyaltyPoints: u.loyalty_points,
+        createdAt: u.created_at,
+        orderCount: orderStats[u.id]?.count ?? 0,
+        totalSpent: orderStats[u.id]?.total ?? 0,
+      }))
+    );
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
+
+  const filtered = customers.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase()) ||
+    c.email.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen bg-cream p-6">
+    <div className="p-6 md:pt-6 pt-4">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-muted mb-1">
-            <Link href="/admin" className="hover:text-charcoal">Dashboard</Link>
-            <span>/</span>
-            <span className="text-charcoal font-medium">Customers</span>
-          </div>
-          <h1 className="text-2xl font-bold text-charcoal" style={{ fontFamily: "var(--font-playfair)" }}>Customers</h1>
-        </div>
+        <PageHeader
+          title="Customers"
+          breadcrumbs={[{ label: "Dashboard", href: "/admin" }, { label: "Customers" }]}
+        />
 
         <div className="bg-white rounded-2xl border border-border overflow-hidden">
           <div className="px-6 py-4 border-b border-border">
-            <input placeholder="Search by name or email..." className="h-9 w-full max-w-xs px-3 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-saffron" />
+            <div className="relative max-w-xs">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name or email…"
+                className="w-full h-9 pl-9 pr-3 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-saffron"
+              />
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-xs text-muted uppercase border-b border-border bg-cream/50">
-                  <th className="text-left px-6 py-3">Customer</th>
-                  <th className="text-left px-6 py-3">Location</th>
-                  <th className="text-left px-6 py-3">Orders</th>
-                  <th className="text-left px-6 py-3">Total Spent</th>
-                  <th className="text-left px-6 py-3">Joined</th>
-                  <th className="text-left px-6 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {customers.map((c) => (
-                  <tr key={c.id} className="hover:bg-cream/30 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-saffron/20 flex items-center justify-center text-saffron-dark text-xs font-bold">
-                          {c.name[0]}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-charcoal">{c.name}</p>
-                          <p className="text-xs text-muted">{c.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted">{c.city}</td>
-                    <td className="px-6 py-4 text-sm text-charcoal font-medium">{c.orders}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-charcoal">{formatPrice(c.totalSpent)}</td>
-                    <td className="px-6 py-4 text-xs text-muted">{formatDate(c.joined)}</td>
-                    <td className="px-6 py-4">
-                      <Badge variant={c.status === "Active" ? "forest" : "saffron"} size="sm">{c.status}</Badge>
-                    </td>
+
+          {loading ? (
+            <div className="py-16 text-center text-muted text-sm">Loading customers…</div>
+          ) : filtered.length === 0 ? (
+            <div className="py-16 text-center text-muted text-sm">No customers found.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-xs text-muted uppercase border-b border-border bg-cream/50">
+                    <th className="text-left px-6 py-3">Customer</th>
+                    <th className="text-left px-6 py-3 hidden sm:table-cell">Role</th>
+                    <th className="text-left px-6 py-3 hidden md:table-cell">Orders</th>
+                    <th className="text-left px-6 py-3">Total Spent</th>
+                    <th className="text-left px-6 py-3 hidden lg:table-cell">Points</th>
+                    <th className="text-left px-6 py-3 hidden md:table-cell">Joined</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {filtered.map((c) => (
+                    <tr key={c.id} className="hover:bg-cream/30 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-saffron/20 flex items-center justify-center text-saffron-dark text-xs font-bold shrink-0">
+                            {(c.name[0] ?? c.email[0] ?? "?").toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-charcoal">{c.name}</p>
+                            <p className="text-xs text-muted">{c.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 hidden sm:table-cell">
+                        <Badge variant={c.role === "admin" ? "saffron" : "forest"} size="sm" className="capitalize">
+                          {c.role}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-charcoal font-medium hidden md:table-cell">{c.orderCount}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-charcoal">{formatPrice(c.totalSpent)}</td>
+                      <td className="px-6 py-4 text-sm text-muted hidden lg:table-cell">{c.loyaltyPoints} pts</td>
+                      <td className="px-6 py-4 text-xs text-muted hidden md:table-cell">{formatDate(c.createdAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

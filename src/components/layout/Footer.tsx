@@ -19,8 +19,8 @@ const footerLinks = {
   Support: [
     { label: "Contact Us", href: "/contact" },
     { label: "FAQ", href: "/#faq" },
-    { label: "Shipping Policy", href: "/shipping" },
-    { label: "Returns & Refunds", href: "/returns" },
+    { label: "Shipping Policy", href: "/shipping-policy" },
+    { label: "Returns & Refunds", href: "/refund-policy" },
   ],
 };
 
@@ -39,8 +39,8 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 bg-saffron rounded-xl flex items-center justify-center">
-                <Leaf size={18} className="text-white" />
+              <div className="w-9 h-9 bg-forest rounded-xl flex items-center justify-center">
+                <Leaf size={18} className="text-cream" />
               </div>
               <span
                 className="text-2xl font-bold text-cream"
@@ -50,9 +50,9 @@ export function Footer() {
               </span>
             </div>
             <p className="text-cream/70 text-sm leading-relaxed mb-6 max-w-xs">
-              From India&apos;s soil to your table. Bringing the wisdom of
-              Ayurveda into modern homes through pure, potent, and
-              preservative-free superfoods.
+              Pure, gentle, and refreshing skincare crafted from traditional
+              natural ingredients. Bringing nature&apos;s touch to your daily self-care 
+              ritual for radiant, healthy skin.
             </p>
             <div className="flex gap-3">
               {socials.map(({ icon: Icon, label, href }) => (
@@ -60,7 +60,7 @@ export function Footer() {
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-cream/70 hover:bg-saffron hover:text-white transition-colors"
+                  className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-cream/70 hover:bg-forest hover:text-cream transition-colors"
                 >
                   <Icon size={16} />
                 </a>
@@ -111,12 +111,12 @@ export function Footer() {
                 <input
                   type="email"
                   placeholder="your@email.com"
-                  className="w-full h-11 bg-white/10 border border-white/20 rounded-xl pl-9 pr-4 text-sm text-cream placeholder:text-cream/40 focus:outline-none focus:ring-2 focus:ring-saffron focus:border-transparent"
+                  className="w-full h-11 bg-white/10 border border-white/20 rounded-xl pl-9 pr-4 text-sm text-cream placeholder:text-cream/40 focus:outline-none focus:ring-2 focus:ring-forest focus:border-transparent"
                 />
               </div>
               <button
                 type="submit"
-                className="h-11 px-5 bg-saffron text-white text-sm font-medium rounded-xl hover:bg-saffron-dark transition-colors shrink-0"
+                className="h-11 px-5 bg-forest text-cream text-sm font-medium rounded-xl hover:bg-forest-light transition-colors shrink-0"
               >
                 Subscribe
               </button>

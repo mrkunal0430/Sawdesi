@@ -1,107 +1,184 @@
-import { Metadata } from "next";
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Package, Heart, Star, Settings, ChevronRight, TrendingUp } from "lucide-react";
+import { Package, MapPin, Settings, ChevronRight, ShoppingBag } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice, formatDate } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import type { Order } from "@/types";
 
-export const metadata: Metadata = { title: "My Account" };
-
-const recentOrders = [
-  { id: "ORD-2025-001", date: "2025-05-28", items: "A2 Ghee × 2, Chyawanprash × 1", total: 2147, status: "Delivered" },
-  { id: "ORD-2025-002", date: "2025-06-01", items: "Moringa Powder × 1, Kadha × 2", total: 797, status: "Shipped" },
-  { id: "ORD-2025-003", date: "2025-06-03", items: "Golden Latte Mix × 1", total: 349, status: "Processing" },
-];
-
-const statusVariant: Record<string, "success" | "saffron" | "warning"> = {
-  Delivered: "success",
-  Shipped: "saffron",
-  Processing: "warning",
+const statusVariant: Record<
+  string,
+  "success" | "saffron" | "warning" | "default"
+> = {
+  delivered: "success",
+  shipped: "saffron",
+  processing: "warning",
+  confirmed: "warning",
+  pending: "default",
+  cancelled: "default",
+  refunded: "default",
 };
 
 export default function AccountPage() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (data) {
+        setOrders(
+          data.map((o) => ({
+            id: o.id,
+            orderNumber: o.order_number,
+            userId: o.user_id,
+            shippingAddress: o.shipping_address,
+            subtotal: o.subtotal,
+            shippingFee: o.shipping_fee,
+            discount: o.discount,
+            total: o.total,
+            status: o.status,
+            paymentId: o.payment_id,
+            couponCode: o.coupon_code,
+            notes: o.notes,
+            createdAt: o.created_at,
+            updatedAt: o.updated_at,
+          }))
+        );
+      }
+      setIsLoading(false);
+    };
+    fetchOrders();
+  }, []);
+
+  const quickLinks = [
+    {
+      label: "My Orders",
+      desc: "Track, return, or reorder",
+      href: "/account/orders",
+      icon: Package,
+    },
+    {
+      label: "Addresses",
+      desc: "Manage delivery addresses",
+      href: "/account/addresses",
+      icon: MapPin,
+    },
+    {
+      label: "Profile",
+      desc: "Update personal details",
+      href: "/account/profile",
+      icon: Settings,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-cream">
-      <div className="bg-white border-b border-border py-8 px-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-saffron flex items-center justify-center text-white text-xl font-bold">
-              R
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-charcoal" style={{ fontFamily: "var(--font-playfair)" }}>
-                Welcome back, Rahul!
-              </h1>
-              <p className="text-sm text-muted">rahul@example.com</p>
-            </div>
-          </div>
-          <Link href="/account/profile" className="text-sm text-forest font-semibold hover:text-forest-dark flex items-center gap-1">
-            <Settings size={15} /> Edit Profile
+    <div className="space-y-6">
+      {/* Recent orders */}
+      <div className="bg-white rounded-2xl border border-border">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h2
+            className="font-bold text-charcoal"
+            style={{ fontFamily: "var(--font-playfair)" }}
+          >
+            Recent Orders
+          </h2>
+          <Link
+            href="/account/orders"
+            className="text-sm text-forest font-semibold hover:text-forest-dark flex items-center gap-1"
+          >
+            View all <ChevronRight size={14} />
           </Link>
         </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-        {/* Quick stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-          {[
-            { icon: Package, label: "Total Orders", value: "12", color: "bg-saffron/10 text-saffron-dark" },
-            { icon: Heart, label: "Wishlist", value: "5", color: "bg-red-50 text-red-500" },
-            { icon: Star, label: "Loyalty Points", value: "840", color: "bg-gold/15 text-brown" },
-            { icon: TrendingUp, label: "Total Savings", value: "₹1,240", color: "bg-forest/10 text-forest" },
-          ].map(({ icon: Icon, label, value, color }) => (
-            <div key={label} className="bg-white rounded-2xl border border-border p-5">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
-                <Icon size={18} />
-              </div>
-              <p className="text-2xl font-bold text-charcoal" style={{ fontFamily: "var(--font-playfair)" }}>{value}</p>
-              <p className="text-xs text-muted">{label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Recent orders */}
-        <div className="bg-white rounded-2xl border border-border mb-8">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-            <h2 className="font-bold text-charcoal" style={{ fontFamily: "var(--font-playfair)" }}>Recent Orders</h2>
-            <Link href="/account/orders" className="text-sm text-forest font-semibold hover:text-forest-dark flex items-center gap-1">
-              View all <ChevronRight size={14} />
-            </Link>
-          </div>
+        {isLoading ? (
           <div className="divide-y divide-border">
-            {recentOrders.map((order) => (
-              <div key={order.id} className="flex items-center justify-between px-6 py-4 gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-charcoal">{order.id}</p>
-                  <p className="text-xs text-muted line-clamp-1">{order.items}</p>
-                  <p className="text-xs text-muted">{formatDate(order.date)}</p>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="px-6 py-4 flex items-center justify-between gap-4"
+              >
+                <div className="space-y-1.5 flex-1">
+                  <div className="h-4 bg-cream-dark rounded animate-pulse w-32" />
+                  <div className="h-3 bg-cream-dark rounded animate-pulse w-48" />
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className="font-bold text-charcoal text-sm">{formatPrice(order.total)}</span>
-                  <Badge variant={statusVariant[order.status]}>{order.status}</Badge>
-                </div>
+                <div className="h-6 bg-cream-dark rounded animate-pulse w-20" />
               </div>
             ))}
           </div>
-        </div>
+        ) : orders.length === 0 ? (
+          <div className="text-center py-10">
+            <ShoppingBag size={36} className="text-muted mx-auto mb-3" />
+            <p className="text-sm text-muted">
+              No orders yet.{" "}
+              <Link
+                href="/products"
+                className="text-forest font-medium hover:underline"
+              >
+                Start shopping!
+              </Link>
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {orders.map((order) => (
+              <Link
+                key={order.id}
+                href={`/account/orders/${order.id}`}
+                className="flex items-center justify-between px-6 py-4 gap-4 hover:bg-cream transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-charcoal">
+                    {order.orderNumber}
+                  </p>
+                  <p className="text-xs text-muted">
+                    {formatDate(order.createdAt)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="font-bold text-charcoal text-sm">
+                    {formatPrice(order.total)}
+                  </span>
+                  <Badge variant={statusVariant[order.status] ?? "default"}>
+                    {order.status.charAt(0).toUpperCase() +
+                      order.status.slice(1)}
+                  </Badge>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
 
-        {/* Quick links */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          {[
-            { label: "My Orders", desc: "Track, return, or reorder", href: "/account/orders", icon: Package },
-            { label: "My Profile", desc: "Update personal details", href: "/account/profile", icon: Settings },
-          ].map(({ label, desc, href, icon: Icon }) => (
-            <Link key={label} href={href} className="group bg-white rounded-2xl border border-border p-5 flex items-center gap-4 hover:border-saffron/40 hover:shadow-sm transition-all">
-              <div className="w-11 h-11 bg-cream rounded-xl flex items-center justify-center group-hover:bg-saffron/10 transition-colors">
-                <Icon size={20} className="text-charcoal group-hover:text-saffron-dark transition-colors" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-charcoal">{label}</p>
-                <p className="text-xs text-muted">{desc}</p>
-              </div>
-              <ChevronRight size={16} className="text-muted" />
-            </Link>
-          ))}
-        </div>
+      {/* Quick links */}
+      <div className="grid sm:grid-cols-3 gap-4">
+        {quickLinks.map(({ label, desc, href, icon: Icon }) => (
+          <Link
+            key={label}
+            href={href}
+            className="group bg-white rounded-2xl border border-border p-5 flex items-center gap-4 hover:border-saffron/40 hover:shadow-sm transition-all"
+          >
+            <div className="w-11 h-11 bg-cream rounded-xl flex items-center justify-center group-hover:bg-saffron/10 transition-colors">
+              <Icon
+                size={20}
+                className="text-charcoal group-hover:text-saffron-dark transition-colors"
+              />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-charcoal">{label}</p>
+              <p className="text-xs text-muted">{desc}</p>
+            </div>
+            <ChevronRight size={16} className="text-muted" />
+          </Link>
+        ))}
       </div>
     </div>
   );

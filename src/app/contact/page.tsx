@@ -15,9 +15,9 @@ interface ContactForm {
 }
 
 const contactInfo = [
-  { icon: Mail, title: "Email Us", value: "hello@sawdesi.in", sub: "We reply within 24 hours" },
-  { icon: Phone, title: "Call Us", value: "+91 98765 43210", sub: "Mon–Sat, 10am–6pm IST" },
-  { icon: MapPin, title: "Our Office", value: "Rajkot, Gujarat, India", sub: "Visit by appointment" },
+  { icon: Mail, title: "Email Us", value: "info@sawdesi.in", sub: "We reply within 24 hours" },
+  { icon: Phone, title: "Call Us", value: "+91 87965 21137", sub: "Mon–Sat, 10am–6pm IST" },
+  { icon: MapPin, title: "Our Office", value: "E - 1292/3 Ground floor sector 50 Nit Faridabad - 121001", sub: "Visit by appointment" },
   { icon: Clock, title: "Support Hours", value: "Mon–Sat, 10am–6pm", sub: "Excluding public holidays" },
 ];
 
@@ -106,14 +106,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* Map placeholder */}
-        <div className="mt-10 bg-forest/10 rounded-3xl h-64 flex items-center justify-center border border-forest/20">
-          <div className="text-center">
-            <MapPin size={32} className="text-forest mx-auto mb-2" />
-            <p className="font-semibold text-forest">Rajkot, Gujarat, India</p>
-            <p className="text-sm text-muted">Map coming soon</p>
-          </div>
-        </div>
+       
       </div>
     </div>
   );

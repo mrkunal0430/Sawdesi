@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers";
-import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { PublicShell } from "@/components/layout/PublicShell";
 import { Toaster } from "sonner";
 
 const inter = Inter({
@@ -64,10 +62,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-cream font-sans">
         <Providers>
-          <AnnouncementBar />
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <PublicShell>
+            {children}
+          </PublicShell>
           <Toaster
             position="bottom-right"
             toastOptions={{

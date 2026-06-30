@@ -1,13 +1,16 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ShoppingBag, Star, ArrowRight } from "lucide-react";
+import { ShoppingBag, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { useCart } from "@/hooks/useCart";
 import { formatPrice } from "@/lib/utils";
-import { MOCK_PRODUCTS } from "@/constants";
+import { createClient } from "@/lib/supabase/client";
+import { mapProduct } from "@/lib/mapProduct";
+import type { Product } from "@/types";
 
 const gradients = [
   "product-gradient-1",
@@ -22,7 +25,52 @@ const emojis = ["🫙", "🌿", "🍃", "🌱", "✨", "☕"];
 
 export function FeaturedProducts() {
   const { addItem } = useCart();
-  const featured = MOCK_PRODUCTS.filter((p) => p.featured);
+  const [featured, setFeatured] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchFeatured = useCallback(async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("products")
+      .select("*")
+      .eq("featured", true)
+      .order("created_at", { ascending: false });
+    setFeatured((data ?? []).map(mapProduct));
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchFeatured(); }, [fetchFeatured]);
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-cream">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12">
+            <div>
+              <p className="text-saffron font-semibold text-sm uppercase tracking-widest mb-3">Most Loved</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-charcoal" style={{ fontFamily: "var(--font-playfair)" }}>
+                Our Bestsellers
+              </h2>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl border border-border overflow-hidden animate-pulse">
+                <div className={`h-52 ${gradients[i % gradients.length]}`} />
+                <div className="p-5 space-y-3">
+                  <div className="h-5 bg-cream-dark rounded w-3/4" />
+                  <div className="h-4 bg-cream-dark rounded w-full" />
+                  <div className="h-4 bg-cream-dark rounded w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (featured.length === 0) return null;
 
   return (
     <section className="py-20 bg-cream">
@@ -73,9 +121,14 @@ export function FeaturedProducts() {
                   className={`relative h-52 ${gradients[i % gradients.length]} overflow-hidden`}
                 >
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-7xl select-none group-hover:scale-110 transition-transform duration-500">
-                      {emojis[i % emojis.length]}
-                    </span>
+                    {product.images[0] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <span className="text-7xl select-none group-hover:scale-110 transition-transform duration-500">
+                        {emojis[i % emojis.length]}
+                      </span>
+                    )}
                   </div>
                   {product.discount && (
                     <div className="absolute top-3 left-3">
@@ -107,25 +160,6 @@ export function FeaturedProducts() {
                 <p className="text-sm text-muted mb-3 leading-snug line-clamp-2">
                   {product.shortDescription}
                 </p>
-
-                <div className="flex items-center gap-1.5 mb-4">
-                  <div className="flex">
-                    {[...Array(5)].map((_, idx) => (
-                      <Star
-                        key={idx}
-                        size={13}
-                        className={
-                          idx < Math.floor(product.rating)
-                            ? "fill-saffron text-saffron"
-                            : "fill-none text-border"
-                        }
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs text-muted">
-                    {product.rating} ({product.reviewCount})
-                  </span>
-                </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-baseline gap-1.5">

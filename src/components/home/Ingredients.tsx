@@ -4,68 +4,68 @@ import { motion } from "framer-motion";
 
 const ingredients = [
   {
-    emoji: "🌿",
-    name: "Tulsi",
-    sanskrit: "Ocimum sanctum",
-    benefit: "Adaptogen & Immunity",
-    color: "from-forest/20 to-forest/5",
-    border: "border-forest/20",
+    emoji: "🥛",
+    name: "Goat Milk",
+    sanskrit: "Aja Ksheera",
+    benefit: "Skin Nourishing",
+    color: "from-[#40916c]/10 to-[#FAF7F2]/30",
+    border: "border-forest/15",
   },
   {
-    emoji: "🟡",
-    name: "Turmeric",
-    sanskrit: "Curcuma longa",
-    benefit: "Anti-inflammatory",
-    color: "from-saffron/20 to-saffron/5",
+    emoji: "🧈",
+    name: "Shea Butter",
+    sanskrit: "Shea Ghruta",
+    benefit: "Deep Moisturizing",
+    color: "from-saffron/10 to-[#FAF7F2]/30",
     border: "border-saffron/20",
   },
   {
-    emoji: "🫚",
-    name: "A2 Ghee",
-    sanskrit: "Sarpi",
-    benefit: "Digestive Health",
-    color: "from-gold/20 to-gold/5",
+    emoji: "🍊",
+    name: "Orange Peel",
+    sanskrit: "Naranga",
+    benefit: "Brightens Skin (Vit C)",
+    color: "from-orange-500/10 to-[#FAF7F2]/30",
+    border: "border-orange-500/20",
+  },
+  {
+    emoji: "🪵",
+    name: "Sandalwood",
+    sanskrit: "Chandana",
+    benefit: "Calms & Soothes",
+    color: "from-amber-600/10 to-[#FAF7F2]/30",
+    border: "border-amber-600/20",
+  },
+  {
+    emoji: "💛",
+    name: "Kasturi Haldi",
+    sanskrit: "Haridra",
+    benefit: "Anti-bacterial & Glow",
+    color: "from-gold/15 to-[#FAF7F2]/30",
     border: "border-gold/20",
   },
   {
-    emoji: "🍃",
-    name: "Moringa",
-    sanskrit: "Shigru",
-    benefit: "92 Nutrients",
-    color: "from-forest-light/20 to-forest-light/5",
+    emoji: "🌿",
+    name: "Mulethi (Licorice)",
+    sanskrit: "Yashtimadhu",
+    benefit: "Fades Tan & Dark Spots",
+    color: "from-forest-light/10 to-[#FAF7F2]/30",
     border: "border-forest-light/20",
   },
   {
-    emoji: "🌰",
-    name: "Ashwagandha",
-    sanskrit: "Withania somnifera",
-    benefit: "Stress & Vitality",
-    color: "from-brown/15 to-brown/5",
+    emoji: "🧱",
+    name: "Multani Mitti",
+    sanskrit: "Mudd",
+    benefit: "Deep Cleansing",
+    color: "from-brown/10 to-[#FAF7F2]/30",
     border: "border-brown/20",
   },
   {
-    emoji: "🍒",
-    name: "Amla",
-    sanskrit: "Emblica officinalis",
-    benefit: "Vitamin C · Immunity",
-    color: "from-saffron/15 to-forest/10",
-    border: "border-saffron/15",
-  },
-  {
-    emoji: "🌱",
-    name: "Giloy",
-    sanskrit: "Tinospora cordifolia",
-    benefit: "Fever & Detox",
-    color: "from-forest-dark/15 to-forest/5",
-    border: "border-forest-dark/20",
-  },
-  {
-    emoji: "🌶️",
-    name: "Black Pepper",
-    sanskrit: "Maricha",
-    benefit: "Bioavailability Booster",
-    color: "from-charcoal/10 to-charcoal/5",
-    border: "border-charcoal/15",
+    emoji: "✨",
+    name: "Kesar Saffron",
+    sanskrit: "Kumkuma",
+    benefit: "Radiant Complexion",
+    color: "from-red-500/10 to-[#FAF7F2]/30",
+    border: "border-red-500/20",
   },
 ];
 
@@ -80,24 +80,23 @@ export function Ingredients() {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <p className="text-saffron font-semibold text-sm uppercase tracking-widest mb-3">
-            Our Pantry
+          <p className="text-forest font-semibold text-sm uppercase tracking-widest mb-3">
+            Our Ingredients
           </p>
           <h2
             className="text-3xl sm:text-4xl font-bold text-charcoal mb-4"
-            style={{ fontFamily: "var(--font-playfair)" }}
+            style={{ fontFamily: "var(--font-serif)" }}
           >
-            Pure Ingredients, No Compromises
+            Pure Botanical Actives
           </h2>
           <p className="text-muted max-w-xl mx-auto">
-            Every ingredient is ethically sourced, identity-preserved, and
-            chosen for its proven efficacy in Ayurvedic science.
+            Every ingredient in our soaps is ethically sourced, identity-preserved, and chosen for its proven efficacy in skincare.
           </p>
         </motion.div>
 
         {/* Scrollable ingredient cards */}
         <div className="relative">
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-4 lg:overflow-visible lg:pb-0">
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pb-0">
             {ingredients.map((ing, i) => (
               <motion.div
                 key={ing.name}
@@ -111,7 +110,7 @@ export function Ingredients() {
                 <div className="text-4xl mb-3 select-none">{ing.emoji}</div>
                 <h3
                   className="font-bold text-charcoal text-base mb-0.5"
-                  style={{ fontFamily: "var(--font-playfair)" }}
+                  style={{ fontFamily: "var(--font-serif)" }}
                 >
                   {ing.name}
                 </h3>
@@ -134,9 +133,9 @@ export function Ingredients() {
         >
           <p className="text-sm text-muted">
             All ingredients are{" "}
-            <span className="font-semibold text-forest">FSSAI certified</span>,{" "}
+            <span className="font-semibold text-forest">100% natural</span>,{" "}
             <span className="font-semibold text-forest">pesticide screened</span>, and{" "}
-            <span className="font-semibold text-forest">heavy-metal tested</span>.
+            <span className="font-semibold text-forest">dermatologically safe</span>.
           </p>
         </motion.div>
       </div>

@@ -1,3 +1,4 @@
+// ─── Product ────────────────────────────────────────────────
 export interface Product {
   id: string;
   slug: string;
@@ -14,12 +15,53 @@ export interface Product {
   images: string[];
   rating: number;
   reviewCount: number;
-  inStock: boolean;
+  stockQuantity: number;
+  lowStockThreshold: number;
   featured: boolean;
   weight?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
+// ─── Profile (replaces old User) ────────────────────────────
+export interface Profile {
+  id: string;
+  phone: string;
+  fullName: string;
+  email: string;
+  emailVerified: boolean;
+  avatarUrl: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Admin ──────────────────────────────────────────────────
+export interface Admin {
+  id: string;
+  email: string;
+  role: "admin" | "super_admin";
+  active: boolean;
+  createdAt: string;
+}
+
+// ─── Address ────────────────────────────────────────────────
+export interface Address {
+  id: string;
+  userId: string;
+  fullName: string;
+  phone: string;
+  houseNumber: string;
+  street: string;
+  landmark?: string;
+  city: string;
+  state: string;
+  country: string;
+  pincode: string;
+  isDefault: boolean;
+  createdAt: string;
+}
+
+// ─── Cart ───────────────────────────────────────────────────
 export interface CartItem {
   product: Product;
   quantity: number;
@@ -31,6 +73,25 @@ export interface Cart {
   discount?: number;
 }
 
+/** Server-side cart row */
+export interface ServerCart {
+  id: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Server-side cart item row */
+export interface ServerCartItem {
+  id: string;
+  cartId: string;
+  productId: string;
+  quantity: number;
+  createdAt: string;
+  product?: Product;
+}
+
+// ─── Orders ─────────────────────────────────────────────────
 export type OrderStatus =
   | "pending"
   | "confirmed"
@@ -41,6 +102,8 @@ export type OrderStatus =
   | "refunded";
 
 export interface OrderItem {
+  id?: string;
+  orderId?: string;
   productId: string;
   productName: string;
   quantity: number;
@@ -48,21 +111,12 @@ export interface OrderItem {
   image?: string;
 }
 
-export interface Address {
-  name: string;
-  phone: string;
-  line1: string;
-  line2?: string;
-  city: string;
-  state: string;
-  pincode: string;
-}
-
 export interface Order {
   id: string;
+  orderNumber: string;
   userId: string;
-  items: OrderItem[];
-  shippingAddress: Address;
+  items?: OrderItem[];
+  shippingAddress: OrderAddress;
   subtotal: number;
   shippingFee: number;
   discount: number;
@@ -70,26 +124,29 @@ export interface Order {
   status: OrderStatus;
   paymentId?: string;
   couponCode?: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  phone?: string;
-  avatarUrl?: string;
-  role: "customer" | "admin";
-  createdAt: string;
-  addresses?: Address[];
-  loyaltyPoints?: number;
+/** Address snapshot stored in order JSON */
+export interface OrderAddress {
+  fullName: string;
+  phone: string;
+  houseNumber: string;
+  street: string;
+  landmark?: string;
+  city: string;
+  state: string;
+  country: string;
+  pincode: string;
 }
 
+// ─── Review ─────────────────────────────────────────────────
 export interface Review {
   id: string;
   productId: string;
-  userId: string;
+  userId?: string;
   userName: string;
   rating: number;
   title: string;
@@ -100,6 +157,23 @@ export interface Review {
   status: "pending" | "approved" | "rejected";
 }
 
+// ─── Testimonial ────────────────────────────────────────────
+export interface Testimonial {
+  id: string;
+  name: string;
+  location: string;
+  rating: number;
+  review: string;
+  product: string;
+  initials: string;
+  mediaUrl?: string;
+  mediaType?: "image" | "video";
+  active: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+// ─── Blog ───────────────────────────────────────────────────
 export interface BlogPost {
   id: string;
   slug: string;
@@ -112,9 +186,13 @@ export interface BlogPost {
   tags: string[];
   coverImage?: string;
   readTime: number;
-  publishedAt: string;
+  published: boolean;
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
+// ─── Coupon ─────────────────────────────────────────────────
 export interface Coupon {
   id: string;
   code: string;
@@ -129,6 +207,7 @@ export interface Coupon {
   createdAt: string;
 }
 
+// ─── Navigation ─────────────────────────────────────────────
 export interface NavLink {
   label: string;
   href: string;
