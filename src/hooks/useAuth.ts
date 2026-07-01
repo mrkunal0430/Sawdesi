@@ -1,4 +1,4 @@
-git status"use client";
+"use client";
 
 import { useContext } from "react";
 import { AuthContext, type AuthContextValue } from "@/providers/AuthProvider";
